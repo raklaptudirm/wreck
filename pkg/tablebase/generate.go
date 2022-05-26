@@ -40,11 +40,22 @@ type boardData struct {
 
 // String converts a BoardData instance to it's string representation.
 func (b boardData) String() string {
-	s := fmt.Sprintf("%s\n\nEvaluation: %d\n\nLines:\n", b.board, b.eval)
+	s := fmt.Sprintf("%s\n\n", b.board)
+	switch b.board.State() {
+	case board.Unfinished:
+		s += fmt.Sprintf("Evaluation: %d\n\nLines:\n", b.eval)
 
-	for move, boardIndex := range b.moves {
-		nextEval := b.table.Get(boardIndex).eval
-		s += fmt.Sprintf("%d: %d\n", move, nextEval)
+		for move, boardIndex := range b.moves {
+			nextEval := b.table.Get(boardIndex).eval
+			s += fmt.Sprintf("%d: %d\n", move, nextEval)
+		}
+
+	case board.PlayerXWon:
+		s += "(player x won)\n"
+	case board.PlayerOWon:
+		s += "(player o won)\n"
+	case board.GameDrawn:
+		s += "(game drawn)\n"
 	}
 
 	return s
