@@ -24,7 +24,6 @@ type Board struct {
 	o Bitboard
 
 	// metadata
-	osTurn  bool  // is it o's turn?
 	moveNum int   // current move number
 	state   State // state of the game
 }
@@ -89,10 +88,8 @@ func (b *Board) Play(move Move) {
 
 	if b.XsTurn() {
 		b.x.Set(move)
-		b.osTurn = true
 	} else {
 		b.o.Set(move)
-		b.osTurn = false
 	}
 
 	// increase move count
@@ -133,7 +130,7 @@ func (b *Board) ValidMoves() []Move {
 // XsTurn checks whether it is x's turn to play and returns a bool
 // accordingly.
 func (b *Board) XsTurn() bool {
-	return !b.osTurn // not o's turn
+	return b.moveNum%2 == 0
 }
 
 // IsValidMove checks if the given move is valid on it's Board.
