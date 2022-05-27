@@ -32,22 +32,6 @@ type Board struct {
 // different playable positions on the board.
 type Move uint8
 
-// New converts a string containing the record of moves on a board into a
-// Board with that position.
-func New(pos string) Board {
-	var b Board
-	for _, move := range pos {
-		if move < '0' || move > '9' {
-			panic("new board: invalid rune in position string")
-		}
-
-		code := uint(move - 48) // ascii value of 0
-		b.Play(Move(code))
-	}
-
-	return b
-}
-
 // String converts a Board to it's string representation.
 func (b Board) String() string {
 	var s string
@@ -78,12 +62,21 @@ func (b Board) String() string {
 	return s
 }
 
+// InvalidMove represents an invalid move provided to Play.
+type InvalidMove struct {
+	move Move
+}
+
+func (e InvalidMove) Error() string {
+	return fmt.Sprintf("play: invalid move %d", e.move)
+}
+
 // Play makes the given move on it's Board, and updates the position and
 // state accordingly.
-func (b *Board) Play(move Move) {
+func (b *Board) Play(move Move) error {
 	// check if move is valid
 	if !b.IsValidMove(move) {
-		panic(fmt.Sprintf("play %d: invalid move", move))
+		return InvalidMove{move}
 	}
 
 	if b.XsTurn() {
@@ -95,7 +88,13 @@ func (b *Board) Play(move Move) {
 	// increase move count
 	b.moveNum++
 
-	// update state
+	b.updateState()
+	return nil
+}
+
+// updateState checks for wins or draws in the Board and updates the state
+// accordingly.
+func (b *Board) updateState() {
 	switch {
 	case b.x.HasWon():
 		// x won
@@ -107,6 +106,9 @@ func (b *Board) Play(move Move) {
 		// all moves completed without anyone winning
 		// therefore position is a draw
 		b.state = GameDrawn
+	default:
+		// game still ongoing
+		b.state = Unfinished
 	}
 }
 
