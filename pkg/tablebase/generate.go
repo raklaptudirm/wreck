@@ -102,70 +102,58 @@ func (t *tablebase) generateAllBoards() {
 // recursively generating all the possible ways the game could progress
 // from the given position. The generated boards are given an evaluation
 // and stored in the tablebase. It returns the index of the given board in
-// the tablebase and it's evaluation.
-func (t *tablebase) generateBoardsFrom(b board.Board) (index boardIndex, eval evaluation) {
+// the tablebase and it's absolute evaluation.
+func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation) {
 	// check if Board has already been generated
 	if index, found := t.IndexOf(b); found {
-		return index, t.Get(index).eval
+		return index, absEval(t.Get(index).eval, b)
 	}
 
 	// map of valid moves to their resultant Board
 	moveMap := make(map[board.Move]boardIndex)
+	eval := evaluation(-1)
 
 	// generate evaluation from game state
 	switch b.State() {
 	case board.Unfinished:
 		validMoves := b.ValidMoves()
-		xsTurn := b.XsTurn()
-
-		// start with lowest possible eval
-		if xsTurn {
-			// -1 is winning for o
-			eval = -1
-		} else {
-			// 1 is winning for x
-			eval = 1
-		}
 
 		// generate and evaluate each valid move on the Board
 		for _, move := range validMoves {
 			newBoard := b       // create a copy
 			newBoard.Play(move) // play the move
 
-			currIndex, currEval := t.generateBoardsFrom(newBoard)
-			moveMap[move] = currIndex
+			nextIndex, nextEval := t.generateBoardsFrom(newBoard)
+			moveMap[move] = nextIndex
+
+			moveEval := -nextEval
 
 			// update board evaluation
-			if xsTurn {
-				// x's turn, so use highest eval
-				if currEval > eval {
-					eval = currEval
-				}
-			} else {
-				// o's turn, so use lowest eval
-				if currEval < eval {
-					eval = currEval
-				}
+			if moveEval > eval {
+				eval = moveEval
 			}
 		}
 
 	// game finished, no valid moves remain
 	// so hardcode evaluation depending on state
-	case board.PlayerXWon:
-		eval = 1
-	case board.PlayerOWon:
+	case board.PlayerXWon, board.PlayerOWon:
 		eval = -1
 	case board.GameDrawn:
 		eval = 0
 	}
 
 	// push given board to tablebase
-	index = t.pushBoard(boardData{
+	return t.pushBoard(boardData{
 		board: b,
-		eval:  eval,
+		eval:  absEval(eval, b),
 		moves: moveMap,
 		table: t,
-	})
+	}), eval
+}
 
-	return
+func absEval(e evaluation, b board.Board) evaluation {
+	if b.XsTurn() {
+		return e
+	}
+	return -e
 }
