@@ -14,87 +14,19 @@
 package tablebase
 
 import (
-	"fmt"
-
 	"laptudirm.com/x/wreck/pkg/board"
+	"laptudirm.com/x/wreck/pkg/evaluation"
 )
 
 // Generate creates and evaluates all the boards from the default tic tac
 // toe starting position. It generates the entire tablebase.
 func Generate() tablebase {
 	var table tablebase
-	table.generateAllBoards()
+	var board board.Board // zero value is starting board
+
+	// generate boards from starting position
+	table.generateBoardsFrom(board)
 	return table
-}
-
-// boardData stores position metadata including the position itself and
-// it's evaluation. It forms the nodes of the tablebase.
-type boardData struct {
-	board board.Board // position
-
-	eval  evaluation                // position evaluation from children
-	moves map[board.Move]boardIndex // moves mapped to resulting positions
-
-	table *tablebase // parent tablebase
-}
-
-// String converts a BoardData instance to it's string representation.
-func (b boardData) String() string {
-	s := fmt.Sprintf("%s\n", b.board)
-	switch b.board.State() {
-	case board.Unfinished:
-		if b.board.XsTurn() {
-			s += "[turn of player x]"
-		} else {
-			s += "[turn of player o]"
-		}
-
-		s += "\n\nLine     : Evaluation\n"
-
-		for move, boardIndex := range b.moves {
-			nextEval := b.table.Get(boardIndex).eval
-			s += fmt.Sprintf("  Move %d : %+d.00\n", move, nextEval)
-		}
-
-	case board.PlayerXWon:
-		s += "\n(player x won)\n"
-	case board.PlayerOWon:
-		s += "\n(player o won)\n"
-	case board.GameDrawn:
-		s += "\n(game drawn)\n"
-	}
-
-	return s
-}
-
-// Position returns a Board representing the position of the boardData.
-func (b boardData) Position() board.Board {
-	return b.board
-}
-
-// Evaluation returns the position evaluation of the boardData.
-func (b boardData) Evaluation() evaluation {
-	return b.eval
-}
-
-// MoveData returns a boardData representing the position after the given
-// move is made on the current board.
-func (b boardData) MoveData(move board.Move) (boardData, bool) {
-	if index, found := b.moves[move]; found {
-		return b.table.Get(index), true
-	}
-
-	return boardData{}, false
-}
-
-// evaluation represents the eval metric of a Board in the tablebase.
-type evaluation = int8
-
-// generateAllBoards calls the generateBoardsFrom function with the default
-// Board, generating the entire tablebase.
-func (t *tablebase) generateAllBoards() {
-	var board board.Board // starting board
-	t.generateBoardsFrom(board)
 }
 
 // generateBoardsFrom generates the children Boards for a given Board,
@@ -102,16 +34,17 @@ func (t *tablebase) generateAllBoards() {
 // recursively generating all the possible ways the game could progress
 // from the given position. The generated boards are given an evaluation
 // and stored in the tablebase. It returns the index of the given board in
-// the tablebase and it's absolute evaluation.
-func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation) {
+// the tablebase and boards evaluation relative to the player.
+func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation.Eval) {
 	// check if Board has already been generated
-	if index, found := t.IndexOf(b); found {
-		return index, absEval(t.Get(index).eval, b)
+	if index, found := t.indexOf(b); found {
+		// absolute to relative eval
+		eval := evaluation.Reflect(index.fetch().eval, b)
+		return index, eval
 	}
 
-	// map of valid moves to their resultant Board
-	moveMap := make(map[board.Move]boardIndex)
-	eval := evaluation(-1)
+	var moves moveMap       // map of valid moves to boards
+	eval := evaluation.Loss // uses lowest possible eval
 
 	// generate evaluation from game state
 	switch b.State() {
@@ -124,9 +57,10 @@ func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation) {
 			newBoard.Play(move) // play the move
 
 			nextIndex, nextEval := t.generateBoardsFrom(newBoard)
-			moveMap[move] = nextIndex
+			moves.add(move, nextIndex) // add move to moveMap
 
-			moveEval := -nextEval
+			// flip the relative eval to current player's perspective
+			moveEval := evaluation.Flip(nextEval)
 
 			// update board evaluation
 			if moveEval > eval {
@@ -137,23 +71,21 @@ func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation) {
 	// game finished, no valid moves remain
 	// so hardcode evaluation depending on state
 	case board.PlayerXWon, board.PlayerOWon:
-		eval = -1
+		// relative evaluation of a loss
+		eval = evaluation.Loss
 	case board.GameDrawn:
-		eval = 0
+		eval = evaluation.Draw
 	}
+
+	// finalize move map by sorting according to eval
+	moves.finalize()
 
 	// push given board to tablebase
 	return t.pushBoard(boardData{
 		board: b,
-		eval:  absEval(eval, b),
-		moves: moveMap,
-		table: t,
+		// relative to absolute eval
+		eval:    evaluation.Reflect(eval, b),
+		moveMap: moves,
+		table:   t,
 	}), eval
-}
-
-func absEval(e evaluation, b board.Board) evaluation {
-	if b.XsTurn() {
-		return e
-	}
-	return -e
 }

@@ -80,8 +80,8 @@ commands:
 				break
 			}
 
-			if index, found := table.IndexOf(b); found {
-				fmt.Print(table.Get(index).String())
+			if data, found := table.Search(b); found {
+				fmt.Print(data.String())
 			} else {
 				fmt.Println("wreck: current position not found in tablebase")
 			}
@@ -100,8 +100,8 @@ commands:
 					break
 				}
 
-				if index, found := table.IndexOf(b); found {
-					fmt.Print(table.Get(index).String())
+				if data, found := table.Search(b); found {
+					fmt.Print(data.String())
 				} else {
 					fmt.Println("wreck: current position not found in tablebase")
 				}
@@ -113,8 +113,8 @@ commands:
 				break
 			}
 
-			if index, found := table.IndexOf(b); found {
-				fmt.Print(table.Get(index).String())
+			if data, found := table.Search(b); found {
+				fmt.Print(data.String())
 			} else {
 				fmt.Println("wreck: current position not found in tablebase")
 			}
