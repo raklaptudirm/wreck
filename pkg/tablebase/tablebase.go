@@ -134,11 +134,6 @@ func (b boardData) Position() board.Board {
 	return b.board
 }
 
-// Evaluation returns the position evaluation of the boardData.
-func (b boardData) Evaluation() evaluation.Abs {
-	return b.eval
-}
-
 // MoveData returns a boardData representing the position after the given
 // move is made on the current board.
 func (b boardData) MoveData(move board.Move) (boardData, bool) {
