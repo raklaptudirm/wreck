@@ -18,31 +18,51 @@ package evaluation
 
 import "laptudirm.com/x/wreck/pkg/board"
 
-type Eval int8
+// eval represents the underlying type of all evaluation types.
+type eval int8
+
+// Rel represents a relative position evaluation.
+type Rel eval
+
+// Abs represents an absolute position evaluation.
+type Abs eval
 
 // relative evaluations representing various states
 const (
-	Win  Eval = 1
-	Draw Eval = 0
-	Loss Eval = -1
+	Win  Rel = 1
+	Draw Rel = 0
+	Loss Rel = -1
 )
 
-// Reflect converts a absolute position evaluation, where positive
-// numbers represent a win for x and negative numbers represent a win for o
-// to a turn relative evaluation where a positive number represents a win
-// and a negative number represents a loss for the current player, or vice-
-// versa, depending on what type of evaluation was given to it.
-func Reflect(e Eval, b board.Board) Eval {
+// ToRel converts a absolute position evaluation, where positive numbers
+// represent a win for x and negative numbers represent a win for o to a
+// turn relative evaluation where a positive number represents a win and a
+// negative number represents a loss for the current player.
+func ToRel(a Abs, b board.Board) Rel {
+	r := Rel(a)
 	if b.XsTurn() {
-		return e
+		return r
 	}
 
-	return -e
+	return -r
+}
+
+// ToAbs converts a turn relative evaluation where a positive number
+// represents a win and a negative number represents a loss for the current
+// player to an absolute position evaluation, where positive numbers
+// represent a win for x and negative numbers represent a win for o.
+func ToAbs(r Rel, b board.Board) Abs {
+	a := Abs(r)
+	if b.XsTurn() {
+		return a
+	}
+
+	return -a
 }
 
 // Flip flips a relative evaluation to be from the perspective of the
 // opponent, where a win for the current player turns into a loss for the
 // opponent and vice-versa.
-func Flip(e Eval) Eval {
+func Flip(e Rel) Rel {
 	return -e
 }

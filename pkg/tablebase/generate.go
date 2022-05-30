@@ -35,11 +35,10 @@ func Generate() tablebase {
 // from the given position. The generated boards are given an evaluation
 // and stored in the tablebase. It returns the index of the given board in
 // the tablebase and boards evaluation relative to the player.
-func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation.Eval) {
+func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation.Rel) {
 	// check if Board has already been generated
 	if index, found := t.indexOf(b); found {
-		// absolute to relative eval
-		eval := evaluation.Reflect(index.fetch().eval, b)
+		eval := evaluation.ToRel(index.fetch().eval, b)
 		return index, eval
 	}
 
@@ -82,9 +81,8 @@ func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation.Ev
 
 	// push given board to tablebase
 	return t.pushBoard(boardData{
-		board: b,
-		// relative to absolute eval
-		eval:    evaluation.Reflect(eval, b),
+		board:   b,
+		eval:    evaluation.ToAbs(eval, b),
 		moveMap: moves,
 		table:   t,
 	}), eval

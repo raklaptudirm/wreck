@@ -93,8 +93,8 @@ func (i boardIndex) fetch() boardData {
 type boardData struct {
 	board board.Board // position
 
-	eval    evaluation.Eval // position evaluation from children
-	moveMap                 // moves mapped to resulting positions
+	eval    evaluation.Abs // position evaluation from children
+	moveMap                // moves mapped to resulting positions
 
 	table *tablebase // parent tablebase
 }
@@ -135,7 +135,7 @@ func (b boardData) Position() board.Board {
 }
 
 // Evaluation returns the position evaluation of the boardData.
-func (b boardData) Evaluation() evaluation.Eval {
+func (b boardData) Evaluation() evaluation.Abs {
 	return b.eval
 }
 
@@ -149,16 +149,16 @@ func (b boardData) MoveData(move board.Move) (boardData, bool) {
 	return boardData{}, false
 }
 
-// AbsoluteEval returns the absolute evaluation of the Board that this boardData
+// AbsEval returns the absolute evaluation of the Board that this boardData
 // represents.
-func (b boardData) AbsoluteEval() evaluation.Eval {
+func (b boardData) AbsEval() evaluation.Abs {
 	return b.eval
 }
 
-// RelativeEval return the relative evaluation of the Board that this
-// boardData represents.
-func (b boardData) RelativeEval() evaluation.Eval {
-	return evaluation.Reflect(b.eval, b.board)
+// RelEval returns the relative evaluation of the Board that this boardData
+// represents.
+func (b boardData) RelEval() evaluation.Rel {
+	return evaluation.ToRel(b.eval, b.board)
 }
 
 // moveMap maps all valid moves in a position to their corresponding
@@ -188,7 +188,7 @@ func (m *moveMap) Search(target board.Move) (moveMapEntry, bool) {
 
 // add adds the given move with the given boardIndex to the moveMap.
 func (m *moveMap) add(move board.Move, index boardIndex) {
-	eval := evaluation.Flip(index.fetch().RelativeEval())
+	eval := evaluation.Flip(index.fetch().RelEval())
 	m.boardMap = append(m.boardMap, moveMapEntry{move: move, index: index, eval: eval})
 }
 
@@ -202,7 +202,7 @@ func (m *moveMap) finalize() {
 
 // moveMapEntry represents individual entries in a moveMap
 type moveMapEntry struct {
-	move  board.Move      // represented move
-	index boardIndex      // board state after move
-	eval  evaluation.Eval // move evaluation
+	move  board.Move     // represented move
+	index boardIndex     // board state after move
+	eval  evaluation.Rel // move evaluation
 }
