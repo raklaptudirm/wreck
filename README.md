@@ -29,25 +29,27 @@ wreck :: exit            # exit from program
 ```
 
 ### Evaluation
-Wreck evaluates position as a number. An evaluation of `0` means the
-position is equal, and perfect play will result in a draw. A positive number
-means the position is winning for `x`, and perfect play will result in a win
-for `x`, and vice-versa for negative numbers.
+Wreck evaluates position as a number. An evaluation of `±00` means the
+position is equal, and perfect play will result in a draw. An evaluation
+starting with a `+`, like `+Wn` means  means player `X` will win in `n`
+steps, and an evaluation starting with `-` means player `O` will win in `n`
+steps.
 
 ### Position Strings
 A tic tac toe position is represented by a 9-character long position string
 which is composed of `x`, `o`, and `.` symbols. Each of the nine characters
 represents one of the cells on a tic tac toe board, and the symbols represent
-a mark by player X, a mark by player O, and an empty cell respectively.
+a mark by player `X`, a mark by player `O`, and an empty cell respectively.
 
 ```
-The following position:
-x o .  1 2 3
-x . .  4 5 6
-o . .  7 8 9
-Is represented by the following string:
-xo.x..o..
-123456789
+Any tic-tac-toe position:
+1 2 3  x o .
+4 5 6  x . .
+7 8 9  o . .
+
+Is represented in the following format:
+  123456789
+  xo.x..o..
 ```
 
 ### Moves

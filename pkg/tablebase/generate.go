@@ -42,8 +42,8 @@ func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation.Re
 		return index, eval
 	}
 
-	var moves moveMap       // map of valid moves to boards
-	eval := evaluation.Loss // uses lowest possible eval
+	var moves moveMap          // map of valid moves to boards
+	eval := evaluation.LossIn1 // uses lowest possible eval
 
 	// generate evaluation from game state
 	switch b.State() {
@@ -70,8 +70,8 @@ func (t *tablebase) generateBoardsFrom(b board.Board) (boardIndex, evaluation.Re
 	// game finished, no valid moves remain
 	// so hardcode evaluation depending on state
 	case board.PlayerXWon, board.PlayerOWon:
-		// relative evaluation of a loss
-		eval = evaluation.Loss
+		// relative evaluation of an immediate loss
+		eval = evaluation.LossIn1
 	case board.GameDrawn:
 		eval = evaluation.Draw
 	}

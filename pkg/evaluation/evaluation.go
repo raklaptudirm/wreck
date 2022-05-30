@@ -30,9 +30,9 @@ type Rel eval
 
 // relative evaluations representing various states
 const (
-	Win  Rel = 1
-	Draw Rel = 0
-	Loss Rel = -1
+	Draw    Rel = 0
+	WinIn1  Rel = 10
+	LossIn1 Rel = -10
 )
 
 // Abs represents an absolute position evaluation.
@@ -41,7 +41,18 @@ type Abs eval
 // String returns the string representation of the given absolute
 // evaluation.
 func (a Abs) String() string {
-	return fmt.Sprintf("%+d", a)
+	switch {
+	case a == 0:
+		return "±00"
+	case a > 0:
+		steps := 11 - a
+		return fmt.Sprintf("+W%d", steps)
+	case a < 0:
+		steps := 11 + a
+		return fmt.Sprintf("-W%d", steps)
+	default:
+		return "invalid"
+	}
 }
 
 // ToRel converts a absolute position evaluation, where positive numbers
@@ -74,5 +85,9 @@ func ToAbs(r Rel, b board.Board) Abs {
 // opponent, where a win for the current player turns into a loss for the
 // opponent and vice-versa.
 func Flip(e Rel) Rel {
-	return -e
+	if e = -e; e > Draw {
+		e--
+	}
+
+	return e
 }
