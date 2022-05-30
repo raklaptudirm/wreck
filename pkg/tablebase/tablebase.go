@@ -115,7 +115,7 @@ func (b boardData) String() string {
 		moves := b.Moves()
 		for _, data := range moves {
 			nextEval := data.index.fetch().eval
-			s += fmt.Sprintf("  Move %d : %+d.00\n", data.move, nextEval)
+			s += fmt.Sprintf("  Move %d : %s\n", data.move, nextEval)
 		}
 
 	case board.PlayerXWon:

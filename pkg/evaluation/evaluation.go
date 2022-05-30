@@ -16,7 +16,11 @@
 // also contains constants representing various evaluations.
 package evaluation
 
-import "laptudirm.com/x/wreck/pkg/board"
+import (
+	"fmt"
+
+	"laptudirm.com/x/wreck/pkg/board"
+)
 
 // eval represents the underlying type of all evaluation types.
 type eval int8
@@ -24,15 +28,21 @@ type eval int8
 // Rel represents a relative position evaluation.
 type Rel eval
 
-// Abs represents an absolute position evaluation.
-type Abs eval
-
 // relative evaluations representing various states
 const (
 	Win  Rel = 1
 	Draw Rel = 0
 	Loss Rel = -1
 )
+
+// Abs represents an absolute position evaluation.
+type Abs eval
+
+// String returns the string representation of the given absolute
+// evaluation.
+func (a Abs) String() string {
+	return fmt.Sprintf("%+d", a)
+}
 
 // ToRel converts a absolute position evaluation, where positive numbers
 // represent a win for x and negative numbers represent a win for o to a
