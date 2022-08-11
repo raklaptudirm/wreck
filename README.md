@@ -6,10 +6,7 @@ game played against Wreck will either end in a draw or a win for Wreck.
 ### Installation
 
 ``` bash
-git clone https://github.com/raklaptudirm/wreck.git
-cd wreck
-go build ./cmd/wreck
-./wreck # put this executable in your path
+go install laptudirm.com/x/wreck/cmd/wreck@latest
 ```
 
 ### Usage
